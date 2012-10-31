@@ -14,3 +14,23 @@ $ whisper -c \#hacktheirc this is test message
 $ whisper -c \#hacktheirc -p "this is the message use PRIVMSG instead of NOTICE"
 $ whisper -f config -c \#hacktheirc "use config instead of ~/.whisper"
 $ cat README | whisper -c \#hacktheirc
+
+* How to enable control socket
+
+tiarra.confのgeneralブロックのcontrol-socket-nameを有効にする
+
+ general {
+   # 外部プログラムからTiarraをコントロールする為のUNIXドメインソケットの名前。
+   # 例えば"foo"を指定した場合、ソケット/tmp/tiarra-control/fooが作られる。
+   # 省略された場合はこの機能を無効とする。
+   # また、非UNIX環境ではそもそもUNIXドメインソケットが利用可能でないため、
+   # そのような場合にもこの機能は無効となる。
+   control-socket-name: foo
+ }
+
+tiarra.confでSystem::SendMessageモジュールを有効化する
+
+ + System::SendMessage {
+ }
+
+HUPでは有効化されないのでtiarra再起動
