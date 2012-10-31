@@ -1,0 +1,16 @@
+* whisper - notify message to tiarra
+
+* ~/.whisper format
+
+socket   = socketname
+;channel = #channel
+interval = 2
+
+* usage
+
+whisper [-f config] [-i n] [-s socket] [-p] [-c channel] [message]
+
+$ whisper -c \#hacktheirc this is test message
+$ whisper -c \#hacktheirc -p "this is the message use PRIVMSG instead of NOTICE"
+$ whisper -f config -c \#hacktheirc "use config instead of ~/.whisper"
+$ cat README | whisper -c \#hacktheirc

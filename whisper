@@ -1,0 +1,68 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use File::Basename 'basename';
+use Config::Tiny;
+use Getopt::Long;
+use IO::Socket::UNIX;
+use Time::HiRes;
+
+my $prog = basename($0);
+my $config = '';
+
+sub usage {
+    my $m = shift;
+    print STDERR "$m\n\n" if $m;
+
+    print STDERR "usage : $prog [-f config] [-i n] [-s socket] [-p] [-c channel] [message]\n";
+    print STDERR "config: $config\n";
+    exit 1;
+}
+
+GetOptions(
+    'channel=s'  => \my $channel,
+    'file=s'     => \$config,
+    'interval=n' => \my $interval,
+    'privmsg'    => \my $privmsg,
+    'socket=s'   => \my $socket,
+    ) or usage();
+
+$config ||= $ENV{HOME}."/.$prog";
+my $ini   = Config::Tiny->read($config);
+
+$socket   ||= $ini->{_}{socket} or usage('socket not specified');
+$channel  ||= $ini->{_}{channel} or usage('channel not specified');
+my $notice  = $privmsg ? 'no' : 'yes';
+$interval ||= $ini->{_}{interval} || 2;
+my $message = join(' ', @ARGV) || join('', <STDIN>);
+
+my $protocol = 'TIARRACONTROL/1.0';
+my $TMPL = <<TMPL;
+NOTIFY System::SendMessage $protocol\r
+Sender: $prog\r
+Notice: $notice\r
+Channel: $channel\r
+Charset: UTF-8\r
+Text: %s\r
+\r
+TMPL
+;
+
+foreach my $line (split("\n", $message)) {
+    next unless $line;
+
+    my $sd = IO::Socket::UNIX->new(
+	Type => SOCK_STREAM,
+	Peer => '/tmp/tiarra-control/' . $socket,
+	) or die $!;
+
+    my $buf = sprintf($TMPL, $line);
+    $sd->print($buf);
+    my $resp = <$sd>;
+    if ($resp !~ /$protocol 200 OK/o) {
+	warn $resp;
+    }
+    $sd->close;
+    Time::HiRes::sleep($interval);
+}
