@@ -32,6 +32,7 @@ $config ||= $ENV{HOME}."/.$prog";
 my $ini   = Config::Tiny->read($config);
 
 $socket   ||= $ini->{_}{socket} or usage('socket not specified');
+$socket     = chr(ord($socket)) eq '/' ? $socket : ('/tmp/tiarra-control/' . $socket),
 $channel  ||= $ini->{_}{channel} or usage('channel not specified');
 my $notice  = $privmsg ? 'no' : 'yes';
 $interval ||= $ini->{_}{interval} || 2;
@@ -54,8 +55,8 @@ foreach my $line (split("\n", $message)) {
 
     my $sd = IO::Socket::UNIX->new(
 	Type => SOCK_STREAM,
-	Peer => '/tmp/tiarra-control/' . $socket,
-	) or die $!;
+	Peer => $socket,
+	) or die "$socket: $!";
 
     my $buf = sprintf($TMPL, $line);
     $sd->print($buf);
