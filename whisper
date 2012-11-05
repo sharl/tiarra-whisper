@@ -21,7 +21,7 @@ sub usage {
 }
 
 GetOptions(
-    'channel=s'  => \my $channel,
+    'channel=s@' => \my @channels,
     'file=s'     => \$config,
     'interval=n' => \my $interval,
     'privmsg'    => \my $privmsg,
@@ -32,14 +32,16 @@ $config ||= $ENV{HOME}."/.$prog";
 my $ini   = Config::Tiny->read($config);
 
 $socket   ||= $ini->{_}{socket} or usage('socket not specified');
-$socket     = chr(ord($socket)) eq '/' ? $socket : ('/tmp/tiarra-control/' . $socket),
-$channel  ||= $ini->{_}{channel} or usage('channel not specified');
+$socket     = chr(ord($socket)) eq '/' ? $socket : ('/tmp/tiarra-control/' . $socket);
+$#channels < 0 and @channels = split(/,\s*/o, $ini->{_}{channel});
+$#channels < 0 and usage('channel not specified');
 my $notice  = $privmsg ? 'no' : 'yes';
 $interval ||= $ini->{_}{interval} || 2;
 my $message = join(' ', @ARGV) || join('', <STDIN>);
 
 my $protocol = 'TIARRACONTROL/1.0';
-my $TMPL = <<TMPL;
+foreach my $channel (@channels) {
+    my $TMPL = <<TMPL;
 NOTIFY System::SendMessage $protocol\r
 Sender: $prog\r
 Notice: $notice\r
@@ -50,20 +52,21 @@ Text: %s\r
 TMPL
 ;
 
-foreach my $line (split("\n", $message)) {
-    next unless $line;
+    foreach my $line (split("\n", $message)) {
+	next unless $line;
 
-    my $sd = IO::Socket::UNIX->new(
-	Type => SOCK_STREAM,
-	Peer => $socket,
-	) or die "$socket: $!";
+	my $sd = IO::Socket::UNIX->new(
+	    Type => SOCK_STREAM,
+	    Peer => $socket,
+	    ) or die "$socket: $!";
 
-    my $buf = sprintf($TMPL, $line);
-    $sd->print($buf);
-    my $resp = <$sd>;
-    if ($resp !~ /$protocol 200 OK/o) {
-	warn $resp;
+	my $buf = sprintf($TMPL, $line);
+	$sd->print($buf);
+	my $resp = <$sd>;
+	if ($resp !~ /$protocol 200 OK/o) {
+	    warn $resp;
+	}
+	$sd->close;
+	Time::HiRes::sleep($interval);
     }
-    $sd->close;
-    Time::HiRes::sleep($interval);
 }
