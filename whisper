@@ -9,14 +9,15 @@ use IO::Socket::UNIX;
 use Time::HiRes;
 
 my $prog = basename($0);
-my $config = '';
+my $config = $ENV{HOME}."/.$prog";
 
 sub usage {
     my $m = shift;
     print STDERR "$m\n\n" if $m;
 
     print STDERR "usage : $prog [-f config] [-i n] [-s socket] [-p] [-c channel] [message]\n";
-    print STDERR "config: $config\n";
+    (my $cf = $config) =~ s/$ENV{HOME}/~/;
+    print STDERR "config: $cf\n";
     exit 1;
 }
 
@@ -28,8 +29,8 @@ GetOptions(
     'socket=s'   => \my $socket,
     ) or usage();
 
-$config ||= $ENV{HOME}."/.$prog";
 my $ini   = Config::Tiny->read($config);
+usage(Config::Tiny->errstr) unless $ini;
 
 $socket   ||= $ini->{_}{socket} or usage('socket not specified');
 $socket     = chr(ord($socket)) eq '/' ? $socket : ('/tmp/tiarra-control/' . $socket);
