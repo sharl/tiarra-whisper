@@ -53,21 +53,22 @@ Text: %s\r
 TMPL
 ;
 
-    foreach my $line (split("\n", $message)) {
-	next unless $line;
+    my @lines = split("\n", $message);
+    for my $idx (0 .. $#lines) {
+	next unless $lines[$idx];
 
 	my $sd = IO::Socket::UNIX->new(
 	    Type => SOCK_STREAM,
 	    Peer => $socket,
 	    ) or die "$socket: $!";
 
-	my $buf = sprintf($TMPL, $line);
+	my $buf = sprintf($TMPL, $lines[$idx]);
 	$sd->print($buf);
 	my $resp = <$sd>;
 	if ($resp !~ /$protocol 200 OK/o) {
 	    warn $resp;
 	}
 	$sd->close;
-	Time::HiRes::sleep($interval);
+	Time::HiRes::sleep($interval) if $idx != $#lines;
     }
 }
