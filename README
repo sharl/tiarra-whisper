@@ -8,7 +8,7 @@ interval = 2
 
 * usage
 
-whisper [-f config] [-i n] [-s socket] [-p] [-c channel] [message]
+whisper [-f config] [-i n] [-s socket] [-p] [-t] [-c channel] [message]
 
 $ whisper -c \#hacktheirc this is test message
 $ whisper -c \#hacktheirc -p "this is the message use PRIVMSG instead of NOTICE"

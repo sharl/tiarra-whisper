@@ -15,7 +15,7 @@ sub usage {
     my $m = shift;
     print STDERR "$m\n\n" if $m;
 
-    print STDERR "usage : $prog [-f config] [-i n] [-s socket] [-p] [-c channel] [message]\n";
+    print STDERR "usage : $prog [-f config] [-i n] [-s socket] [-p] [-t] [-c channel] [message]\n";
     (my $cf = $config) =~ s/$ENV{HOME}/~/;
     print STDERR "config: $cf\n";
     exit 1;
@@ -27,6 +27,7 @@ GetOptions(
     'interval=n' => \my $interval,
     'privmsg'    => \my $privmsg,
     'socket=s'   => \my $socket,
+    'thru'       => \my $thru,
     ) or usage();
 
 my $ini   = Config::Tiny->read($config);
@@ -39,6 +40,7 @@ $#channels < 0 and usage('channel not specified');
 my $notice  = $privmsg ? 'no' : 'yes';
 $interval ||= $ini->{_}{interval} || 2;
 my $message = join(' ', @ARGV) || join('', <STDIN>);
+print $message if $thru;
 
 my $protocol = 'TIARRACONTROL/1.0';
 foreach my $channel (@channels) {
