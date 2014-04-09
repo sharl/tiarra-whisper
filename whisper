@@ -15,13 +15,14 @@ sub usage {
     my $m = shift;
     print STDERR "$m\n\n" if $m;
 
-    print STDERR "usage : $prog [-f config] [-i n] [-s socket] [-p] [-t] [-c channel] [message]\n";
+    print STDERR "usage : $prog [-f config] [-i n] [-s socket] [-p] [-t] [-c channel] [-b] [message]\n";
     (my $cf = $config) =~ s/$ENV{HOME}/~/;
     print STDERR "config: $cf\n";
     exit 1;
 }
 
 GetOptions(
+    'bot'        => \my $bot,
     'channel=s@' => \my @channels,
     'file=s'     => \$config,
     'interval=n' => \my $interval,
@@ -64,7 +65,7 @@ TMPL
 	    Peer => $socket,
 	    ) or die "$socket: $!";
 
-	my $buf = sprintf($TMPL, $lines[$idx]);
+	my $buf = sprintf($TMPL, $lines[$idx] . ($bot ? ' %' : ''));
 	$sd->print($buf);
 	my $resp = <$sd>;
 	if ($resp !~ /$protocol 200 OK/o) {
