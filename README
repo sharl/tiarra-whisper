@@ -6,6 +6,9 @@ socket   = socketname
 ;channel = #channel
 interval = 2
 
+[alias]
+hack = #hacktheirc
+
 * usage
 
 whisper [-f config] [-i n] [-s socket] [-p] [-t] [-c channel] [-b] [message]
@@ -14,6 +17,7 @@ $ whisper -c \#hacktheirc this is test message
 $ whisper -c \#hacktheirc -p "this is the message use PRIVMSG instead of NOTICE"
 $ whisper -f config -c \#hacktheirc "use config instead of ~/.whisper"
 $ cat README | whisper -c \#hacktheirc
+$ cat README | whisper -c hack
 
 * How to enable control socket
 

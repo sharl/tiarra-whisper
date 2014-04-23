@@ -38,6 +38,7 @@ $socket   ||= $ini->{_}{socket} or usage('socket not specified');
 $socket     = chr(ord($socket)) eq '/' ? $socket : ('/tmp/tiarra-control/' . $socket);
 $#channels < 0 and @channels = split(/,\s*/o, $ini->{_}{channel});
 $#channels < 0 and usage('channel not specified');
+@channels = map {defined $ini->{alias}{$_} ? $ini->{alias}{$_} : $_} @channels;
 my $notice  = $privmsg ? 'no' : 'yes';
 $interval ||= $ini->{_}{interval} || 2;
 my $message = join(' ', @ARGV) || join('', <STDIN>);
